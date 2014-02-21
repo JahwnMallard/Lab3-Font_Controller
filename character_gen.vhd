@@ -67,7 +67,7 @@ signal rom_data : std_logic_vector(7 downto 0);
 signal data_b_sig : std_logic_vector(6 downto 0);
 signal row_reg, row_next : std_logic_vector(10 downto 0);
 signal font_data_sig : std_logic_vector(7 downto 0);
-signal col_reg, col_next_1, col_next_2 : std_logoc_vector(3 downto 0);
+signal col_reg, col_next_1, col_next_2 : std_logic_vector(3 downto 0);
 
 begin
 	
@@ -76,7 +76,7 @@ Inst_char_screen_buffer: char_screen_buffer PORT MAP(
 		clk => clk,
 		we => write_en,
 		address_a => (others => '0') ,
-		address_b => open,
+		address_b => (others => '0'),
 		data_in => ascii_to_write,
 		data_out_a => open,
 		data_out_b => data_b_sig
@@ -105,7 +105,14 @@ end process;
 
 col_reg <= col_next_2;
 
+process(clk) is 
+begin
+if(rising_edge(clk)) then
+	row_next <= row;
+	end if;
+end process;
 
+row_reg <= row_next;
 
 
 end Behavioral;
