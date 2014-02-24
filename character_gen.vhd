@@ -60,6 +60,14 @@ architecture Behavioral of character_gen is
 		data_out_b : OUT std_logic_vector(7 downto 0)
 		);
 	END COMPONENT;
+	
+	COMPONENT Mux_8_1
+	PORT(
+		data : IN std_logic_vector(7 downto 0);
+		sel : IN std_logic_vector(2 downto 0);          
+		output : OUT std_logic
+		);
+	END COMPONENT;
 
 
 signal address : std_logic_vector(10 downto 0);
@@ -68,6 +76,7 @@ signal data_b_sig : std_logic_vector(6 downto 0);
 signal row_reg, row_next : std_logic_vector(10 downto 0);
 signal font_data_sig : std_logic_vector(7 downto 0);
 signal col_reg, col_next_1, col_next_2 : std_logic_vector(3 downto 0);
+signal mux_out : std_logic;
 
 begin
 	
@@ -87,6 +96,13 @@ Inst_font_rom: font_rom PORT MAP(
 		addr => row_next & data_b_sig,
 		data =>  font_data_sig
 	);
+
+Inst_Mux_8_1: Mux_8_1 PORT MAP(
+		data => col_reg,
+		sel => row_reg,
+		output => mux_out
+	);
+
 
 
 process(clk) is 
@@ -114,6 +130,18 @@ end process;
 
 row_reg <= row_next;
 
-
+process(mux_out) is
+begin
+	if(mux_out = '1') then
+		r <= (others => '1');
+		b <= (others => '1');
+		g <= (others => '1');
+	else
+		r <= (others => '0');
+		b <= (others => '0');
+		g <= (others => '0');
+	end if;
+end process;
+	
 end Behavioral;
 
