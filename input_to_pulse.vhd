@@ -97,7 +97,7 @@ process(clk, reset)
 				end if;
 				
 			when pressed =>
-				if(count_reg>100000 and input = '0') then	
+				if(count_reg>200000 and input = '0') then	
 					button_next <=depressed;
 				end if;
 			when depressed =>
