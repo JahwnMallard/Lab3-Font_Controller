@@ -95,6 +95,15 @@ COMPONENT nes_controller
 		);
 	END COMPONENT;
 
+	COMPONENT nes_speed_control
+	PORT(
+		clk : IN std_logic;
+		reset : IN std_logic;
+		btn_in : IN std_logic;          
+		btn_out : OUT std_logic
+		);
+	END COMPONENT;
+
 	COMPONENT vga_sync
 	PORT(
 		clk : IN std_logic;
@@ -111,8 +120,9 @@ COMPONENT nes_controller
 
 	
 	signal row_sig, col_sig , col_reg, col_next_1, col_next_2, row_reg, row_next_1, row_next_2 : unsigned (10 downto 0);
-	signal up, down, left, right, en_sig, v_com_sig, pixel_clk, serialize_clk, serialize_clk_n, h_sync, h_sync_reg, h_sync_next_1, h_sync_next_2,  v_sync, v_sync_reg, v_sync_next_1, v_sync_next_2, blank, blank_reg, blank_next_1, blank_next_2, clock_s, red_s, green_s, blue_s : std_logic;
+	signal up, down, left, right, up_sig, down_sig, left_sig, right_sig, en_sig, v_com_sig, pixel_clk, serialize_clk, serialize_clk_n, h_sync, h_sync_reg, h_sync_next_1, h_sync_next_2,  v_sync, v_sync_reg, v_sync_next_1, v_sync_next_2, blank, blank_reg, blank_next_1, blank_next_2, clock_s, red_s, green_s, blue_s : std_logic;
 	signal red, blue, green, ascii_signal : std_logic_vector (7 downto 0);
+	signal count, count_next : std_logic_vector(7 downto 0);
 begin
 
 
@@ -130,6 +140,34 @@ Inst_nes_controller: nes_controller PORT MAP(
 		down => down,
 		left => left,
 		right => right
+	);
+
+	up_nes_speed_control: nes_speed_control PORT MAP(
+		clk => pixel_clk,
+		reset => reset,
+		btn_in => up,
+		btn_out => up_sig
+	);
+	
+		down_nes_speed_control: nes_speed_control PORT MAP(
+		clk => pixel_clk,
+		reset => reset,
+		btn_in => down,
+		btn_out => down_sig
+	);
+	
+		left_nes_speed_control: nes_speed_control PORT MAP(
+		clk => pixel_clk,
+		reset => reset,
+		btn_in => left,
+		btn_out => left_sig
+	);
+	
+		right_nes_speed_control: nes_speed_control PORT MAP(
+		clk => pixel_clk,
+		reset => reset,
+		btn_in => right,
+		btn_out => right_sig 
 	);
 
 
@@ -162,13 +200,16 @@ Inst_character_gen: character_gen PORT MAP(
 		row => std_logic_vector(row_sig),
 		column => std_logic_vector(col_sig),
 		ascii_to_write => ascii_signal,
-		write_en => (left or right or up or down),
+		write_en => (left_sig or right_sig or up_sig or down_sig),
 		left => left,
 		right => right,
 		r => red,
 		g => green,
 		b => blue 
 	);
+
+
+
 
 	process(pixel_clk) is
 	begin
