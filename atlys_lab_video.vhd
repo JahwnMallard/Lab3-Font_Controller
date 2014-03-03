@@ -94,7 +94,7 @@ Inst_vga_sync: vga_sync PORT MAP(
 
 
 Inst_character_gen: character_gen PORT MAP(
-		clk => clk,
+		clk => pixel_clk,
 		blank => blank_reg ,
 		row => std_logic_vector(row_reg),
 		column => std_logic_vector(col_reg),
