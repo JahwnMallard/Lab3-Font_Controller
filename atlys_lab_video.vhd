@@ -35,6 +35,9 @@ entity atlys_lab_video is
           reset : in  std_logic;
           start    : in  std_logic;
           switch  : in  std_logic_vector(7 downto 0);
+			 data : in std_logic;
+			 nes_clk : out std_logic;
+			 latch : out std_logic;
 			 led: out std_logic;
           tmds  : out std_logic_vector(3 downto 0);
           tmdsb : out std_logic_vector(3 downto 0)
@@ -46,12 +49,32 @@ end atlys_lab_video;
 
 architecture Miller of atlys_lab_video is
 
+COMPONENT nes_controller
+	PORT(
+		reset : IN std_logic;
+		clk : IN std_logic;
+		data : IN std_logic;          
+		nes_clk : OUT std_logic;
+		latch : OUT std_logic;
+		a : OUT std_logic;
+		b : OUT std_logic;
+		sel : OUT std_logic;
+		start : OUT std_logic;
+		up : OUT std_logic;
+		down : OUT std_logic;
+		left : OUT std_logic;
+		right : OUT std_logic
+		);
+	END COMPONENT;
+
 	COMPONENT input_to_pulse
 	PORT(
 		clk : IN std_logic;
 		reset : IN std_logic;
 		input : IN std_logic;          
+		held : out std_logic;
 		pulse : OUT std_logic
+		
 		);
 	END COMPONENT;
 
@@ -63,7 +86,9 @@ architecture Miller of atlys_lab_video is
 		row : IN std_logic_vector(10 downto 0);
 		column : IN std_logic_vector(10 downto 0);
 		ascii_to_write : IN std_logic_vector(7 downto 0);
-		write_en : IN std_logic;          
+		write_en : IN std_logic;  
+		left : in  STD_LOGIC;
+		right : in  STD_LOGIC;	
 		r : OUT std_logic_vector(7 downto 0);
 		g : OUT std_logic_vector(7 downto 0);
 		b : OUT std_logic_vector(7 downto 0)
@@ -86,15 +111,34 @@ architecture Miller of atlys_lab_video is
 
 	
 	signal row_sig, col_sig , col_reg, col_next_1, col_next_2, row_reg, row_next_1, row_next_2 : unsigned (10 downto 0);
-	signal en_sig, v_com_sig, pixel_clk, serialize_clk, serialize_clk_n, h_sync, h_sync_reg, h_sync_next_1, h_sync_next_2,  v_sync, v_sync_reg, v_sync_next_1, v_sync_next_2, blank, blank_reg, blank_next_1, blank_next_2, clock_s, red_s, green_s, blue_s : std_logic;
-	signal red, blue, green : std_logic_vector (7 downto 0);
+	signal up, down, left, right, en_sig, v_com_sig, pixel_clk, serialize_clk, serialize_clk_n, h_sync, h_sync_reg, h_sync_next_1, h_sync_next_2,  v_sync, v_sync_reg, v_sync_next_1, v_sync_next_2, blank, blank_reg, blank_next_1, blank_next_2, clock_s, red_s, green_s, blue_s : std_logic;
+	signal red, blue, green, ascii_signal : std_logic_vector (7 downto 0);
 begin
+
+
+Inst_nes_controller: nes_controller PORT MAP(
+		reset => reset,
+		clk => pixel_clk,
+		data => data,
+		nes_clk => nes_clk,
+		latch => latch,
+		a => open,
+		b => open,
+		sel => open,
+		start => open,
+		up => up,
+		down => down,
+		left => left,
+		right => right
+	);
+
 
 	Inst_input_to_pulse: input_to_pulse PORT MAP(
 		clk => pixel_clk,
 		reset => reset,
 		input => start,
-		pulse => en_sig
+		pulse => en_sig,
+		held => open
 	);
 
 
@@ -117,13 +161,25 @@ Inst_character_gen: character_gen PORT MAP(
 		blank => blank ,
 		row => std_logic_vector(row_sig),
 		column => std_logic_vector(col_sig),
-		ascii_to_write => switch,
-		write_en => en_sig,
+		ascii_to_write => ascii_signal,
+		write_en => (left or right or up or down),
+		left => left,
+		right => right,
 		r => red,
 		g => green,
 		b => blue 
 	);
 
+process(pixel_clk) is
+begin
+if (rising_edge(pixel_clk)) then
+	if(up = '1') 
+		then ascii_signal <= std_logic_vector(unsigned(ascii_signal) + 1);
+	elsif (down = '1') 
+		then ascii_signal <= std_logic_vector(unsigned(ascii_signal) - 1);
+	end if;
+end if;
+end process;
 
 process(pixel_clk) is 
 begin

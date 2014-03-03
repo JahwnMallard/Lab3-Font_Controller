@@ -37,6 +37,8 @@ entity character_gen is
            column : in  STD_LOGIC_VECTOR (10 downto 0);
            ascii_to_write : in  STD_LOGIC_VECTOR (7 downto 0);
            write_en : in  STD_LOGIC;
+			  left : in  STD_LOGIC;
+			  right : in  STD_LOGIC;
            r,g,b : out  STD_LOGIC_VECTOR (7 downto 0));
 end character_gen;
 
@@ -86,7 +88,8 @@ signal row_col_multiply_12, count, count_temp : std_logic_vector(11 downto 0);
 
 begin
 	
-count <= std_logic_vector(unsigned(count_temp) + 1) when rising_edge(write_en) else
+count <= std_logic_vector(unsigned(count_temp) -1 ) when (rising_edge(left) and rising_edge(write_en)) else 
+			std_logic_vector(unsigned(count_temp) + 1 ) when rising_edge(right) else
 			count_temp;
 
 count_temp <= (others => '0') when reset = '1' else
@@ -121,6 +124,7 @@ Inst_Mux_8_1: Mux_8_1 PORT MAP(
 
 row_col_multiply <= std_logic_vector(((unsigned(row(10 downto 4)) * 80) + unsigned(column(10 downto 3))));
 row_col_multiply_12 <= row_col_multiply(11 downto 0);
+
 process(clk) is 
 begin
 if(rising_edge(clk)) then
