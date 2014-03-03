@@ -105,7 +105,7 @@ addr_sig <= data_b_sig(6 downto 0) & row_next  ;
 
 Inst_Mux_8_1: Mux_8_1 PORT MAP(
 		data => font_data_sig,
-		sel => col_reg,
+		sel => col_next_2,
 		output => mux_out
 	);
 
@@ -125,7 +125,6 @@ if(rising_edge(clk)) then
 	end if;
 end process;
 
-col_reg <= col_next_2;
 
 process(clk) is 
 begin
@@ -133,8 +132,6 @@ if(rising_edge(clk)) then
 	row_next <= (row(3) & row(2) & row (1) & row(0));
 	end if;
 end process;
-
-row_reg <= row_next;
 
 process(mux_out) is
 begin

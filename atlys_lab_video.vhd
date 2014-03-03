@@ -94,7 +94,7 @@ Inst_vga_sync: vga_sync PORT MAP(
 
 
 Inst_character_gen: character_gen PORT MAP(
-		clk => clk,
+		clk => pixel_clk,
 		blank => blank ,
 		row => std_logic_vector(row_sig),
 		column => std_logic_vector(col_sig),
@@ -105,21 +105,6 @@ Inst_character_gen: character_gen PORT MAP(
 		b => blue 
 	);
 
-process(pixel_clk) is 
-begin
-if(rising_edge(pixel_clk)) then
-	col_next_1 <= col_sig;
-	end if;
-end process;
-
-process(pixel_clk) is
-begin
-if(rising_edge(pixel_clk)) then
-	col_next_2 <= col_next_1;
-	end if;
-end process;
-
-col_reg <= col_next_2;	
 
 process(pixel_clk) is 
 begin
@@ -135,23 +120,7 @@ if(rising_edge(pixel_clk)) then
 	end if;
 end process;
 
-blank_reg <= blank_next_2;
 
-process(pixel_clk) is 
-begin
-if(rising_edge(pixel_clk)) then
-	row_next_1 <= row_sig;
-	end if;
-end process;
-
-process(pixel_clk) is
-begin
-if(rising_edge(pixel_clk)) then
-	row_next_2 <= row_next_1;
-	end if;
-end process;
-
-row_reg <= row_next_2;
  
 process(pixel_clk) is 
 begin
@@ -167,7 +136,6 @@ if(rising_edge(pixel_clk)) then
 	end if;
 end process;
 
-h_sync_reg <= h_sync_next_2;
 
 process(pixel_clk) is 
 begin
@@ -183,7 +151,6 @@ if(rising_edge(pixel_clk)) then
 	end if;
 end process;
 
-v_sync_reg <= v_sync_next_2;
 
  
  -- Clock divider - creates pixel clock from 100MHz clock
@@ -225,9 +192,9 @@ v_sync_reg <= v_sync_next_2;
                 red_p     => red,
                 green_p   => green,
                 blue_p    => blue,
-                blank     => blank_next_1,
-                hsync     => h_sync_next_1,
-                vsync     => v_sync_next_1,
+                blank     => blank_next_2,
+                hsync     => h_sync_next_2,
+                vsync     => v_sync_next_2,
                 -- outputs to TMDS drivers
                 red_s     => red_s,
                 green_s   => green_s,
