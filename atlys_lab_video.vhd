@@ -98,7 +98,7 @@ Inst_character_gen: character_gen PORT MAP(
 		blank => blank_reg ,
 		row => std_logic_vector(row_reg),
 		column => std_logic_vector(col_reg),
-		ascii_to_write => "01010101",
+		ascii_to_write => "01010100",
 		write_en => '1',
 		r => red,
 		g => green,
