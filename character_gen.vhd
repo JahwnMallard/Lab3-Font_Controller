@@ -88,8 +88,8 @@ signal row_col_multiply_12, count, count_temp : std_logic_vector(11 downto 0);
 
 begin
 	
-count <= std_logic_vector(unsigned(count_temp) -1 ) when rising_edge(left) else 
-			std_logic_vector(unsigned(count_temp) + 1 ) when rising_edge(right) else
+count <= std_logic_vector(unsigned(count_temp) -1 ) when (left= '1') else 
+			std_logic_vector(unsigned(count_temp) + 1 ) when (right = '1') else
 			count_temp;
 
 count_temp <= (others => '0') when reset = '1' else
