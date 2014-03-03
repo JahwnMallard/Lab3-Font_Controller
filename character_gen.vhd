@@ -30,7 +30,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity character_gen is
-    Port ( clk : in  STD_LOGIC;
+    Port ( reset : in std_logic;
+			  clk : in  STD_LOGIC;
            blank : in  STD_LOGIC;
            row : in  STD_LOGIC_VECTOR (10 downto 0);
            column : in  STD_LOGIC_VECTOR (10 downto 0);
@@ -40,6 +41,8 @@ entity character_gen is
 end character_gen;
 
 architecture Behavioral of character_gen is
+
+
 
 	COMPONENT font_rom
 	PORT(
@@ -79,16 +82,20 @@ signal col_reg, col_next_1, col_next_2 : std_logic_vector(2 downto 0);
 signal mux_out : std_logic;
 signal addr_sig :  std_logic_vector(10 downto 0);
 signal row_col_multiply : std_logic_vector(13 downto 0);
-signal row_col_multiply_12 : std_logic_vector(11 downto 0);
+signal row_col_multiply_12, count, count_temp : std_logic_vector(11 downto 0);
 
 begin
 	
-	
+count <= std_logic_vector(unsigned(count_temp) + 1) when rising_edge(write_en) else
+			count_temp;
+
+count_temp <= (others => '0') when reset = '1' else
+					count;	
 
 Inst_char_screen_buffer: char_screen_buffer PORT MAP(
 		clk => clk,
 		we => write_en,
-		address_a => (others => '0') ,
+		address_a => count,
 		address_b => row_col_multiply_12,
 		data_in => ascii_to_write,
 		data_out_a => open,
@@ -108,6 +115,9 @@ Inst_Mux_8_1: Mux_8_1 PORT MAP(
 		sel => col_next_2,
 		output => mux_out
 	);
+
+
+
 
 row_col_multiply <= std_logic_vector(((unsigned(row(10 downto 4)) * 80) + unsigned(column(10 downto 3))));
 row_col_multiply_12 <= row_col_multiply(11 downto 0);

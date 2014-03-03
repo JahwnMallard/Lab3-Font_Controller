@@ -34,7 +34,7 @@ entity atlys_lab_video is
           clk   : in  std_logic; -- 100 MHz
           reset : in  std_logic;
           start    : in  std_logic;
-          switch  : in  std_logic;
+          switch  : in  std_logic_vector(7 downto 0);
 			 led: out std_logic;
           tmds  : out std_logic_vector(3 downto 0);
           tmdsb : out std_logic_vector(3 downto 0)
@@ -46,8 +46,18 @@ end atlys_lab_video;
 
 architecture Miller of atlys_lab_video is
 
+	COMPONENT input_to_pulse
+	PORT(
+		clk : IN std_logic;
+		reset : IN std_logic;
+		input : IN std_logic;          
+		pulse : OUT std_logic
+		);
+	END COMPONENT;
+
 	COMPONENT character_gen
 	PORT(
+		reset : IN std_logic;
 		clk : IN std_logic;
 		blank : IN std_logic;
 		row : IN std_logic_vector(10 downto 0);
@@ -76,9 +86,17 @@ architecture Miller of atlys_lab_video is
 
 	
 	signal row_sig, col_sig , col_reg, col_next_1, col_next_2, row_reg, row_next_1, row_next_2 : unsigned (10 downto 0);
-	signal v_com_sig, pixel_clk, serialize_clk, serialize_clk_n, h_sync, h_sync_reg, h_sync_next_1, h_sync_next_2,  v_sync, v_sync_reg, v_sync_next_1, v_sync_next_2, blank, blank_reg, blank_next_1, blank_next_2, clock_s, red_s, green_s, blue_s : std_logic;
+	signal en_sig, v_com_sig, pixel_clk, serialize_clk, serialize_clk_n, h_sync, h_sync_reg, h_sync_next_1, h_sync_next_2,  v_sync, v_sync_reg, v_sync_next_1, v_sync_next_2, blank, blank_reg, blank_next_1, blank_next_2, clock_s, red_s, green_s, blue_s : std_logic;
 	signal red, blue, green : std_logic_vector (7 downto 0);
 begin
+
+	Inst_input_to_pulse: input_to_pulse PORT MAP(
+		clk => pixel_clk,
+		reset => reset,
+		input => start,
+		pulse => en_sig
+	);
+
 
 Inst_vga_sync: vga_sync PORT MAP(
 		clk => pixel_clk,
@@ -94,12 +112,13 @@ Inst_vga_sync: vga_sync PORT MAP(
 
 
 Inst_character_gen: character_gen PORT MAP(
+		reset => reset,
 		clk => pixel_clk,
 		blank => blank ,
 		row => std_logic_vector(row_sig),
 		column => std_logic_vector(col_sig),
-		ascii_to_write => "01010101",
-		write_en => '1',
+		ascii_to_write => switch,
+		write_en => en_sig,
 		r => red,
 		g => green,
 		b => blue 
