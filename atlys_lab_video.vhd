@@ -94,11 +94,11 @@ Inst_vga_sync: vga_sync PORT MAP(
 
 
 Inst_character_gen: character_gen PORT MAP(
-		clk => pixel_clk,
-		blank => blank_next_1 ,
-		row => std_logic_vector(row_next_1),
-		column => std_logic_vector(col_next_1),
-		ascii_to_write => "01010100",
+		clk => clk,
+		blank => blank ,
+		row => std_logic_vector(row_sig),
+		column => std_logic_vector(col_sig),
+		ascii_to_write => "01010101",
 		write_en => '1',
 		r => red,
 		g => green,
@@ -225,9 +225,9 @@ v_sync_reg <= v_sync_next_2;
                 red_p     => red,
                 green_p   => green,
                 blue_p    => blue,
-                blank     => blank_next_1,
-                hsync     => h_sync_next_1,
-                vsync     => v_sync_next_1,
+                blank     => blank_reg,
+                hsync     => h_sync_reg,
+                vsync     => v_sync_reg,
                 -- outputs to TMDS drivers
                 red_s     => red_s,
                 green_s   => green_s,
