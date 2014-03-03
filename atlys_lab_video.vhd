@@ -170,14 +170,18 @@ Inst_character_gen: character_gen PORT MAP(
 		b => blue 
 	);
 
-process(pixel_clk) is
+process(up, left, right, down) is
 begin
-if (rising_edge(pixel_clk)) then
-	if(up = '1') 
-		then ascii_signal <= std_logic_vector(unsigned(ascii_signal) + 1);
-	elsif (down = '1') 
+if (rising_edge(up)) then
+		 ascii_signal <= std_logic_vector(unsigned(ascii_signal) + 1);
+elsif (rising_edge(down)) 
 		then ascii_signal <= std_logic_vector(unsigned(ascii_signal) - 1);
-	end if;
+elsif (rising_edge(left)) then
+		ascii_signal <= (others => '0');
+elsif  (rising_edge(right)) then
+		ascii_signal <= (others => '0');
+else
+		ascii_signal <= ascii_signal;
 end if;
 end process;
 
