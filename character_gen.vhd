@@ -78,7 +78,8 @@ signal font_data_sig : std_logic_vector(7 downto 0);
 signal col_reg, col_next_1, col_next_2 : std_logic_vector(2 downto 0);
 signal mux_out : std_logic;
 signal addr_sig :  std_logic_vector(10 downto 0);
-signal row_col_multiply : std_logic_vector(11 downto 0);
+signal row_col_multiply : std_logic_vector(13 downto 0);
+signal row_col_multiply_12 : std_logic_vector(11 downto 0);
 
 begin
 	
@@ -88,7 +89,7 @@ Inst_char_screen_buffer: char_screen_buffer PORT MAP(
 		clk => clk,
 		we => write_en,
 		address_a => (others => '0') ,
-		address_b => row_col_multiply,
+		address_b => row_col_multiply_12,
 		data_in => ascii_to_write,
 		data_out_a => open,
 		data_out_b => data_b_sig
@@ -108,8 +109,8 @@ Inst_Mux_8_1: Mux_8_1 PORT MAP(
 		output => mux_out
 	);
 
-row_col_multiply <= std_logic_vector((unsigned(row(10 downto 4)) * 80) + unsigned(column(10 downto 3)));
-
+row_col_multiply <= std_logic_vector(((unsigned(row(10 downto 4)) * 80) + unsigned(column(10 downto 3))));
+row_col_multiply_12 <= row_col_multiply(11 downto 0);
 process(clk) is 
 begin
 if(rising_edge(clk)) then
