@@ -85,10 +85,9 @@ COMPONENT nes_controller
 		blank : IN std_logic;
 		row : IN std_logic_vector(10 downto 0);
 		column : IN std_logic_vector(10 downto 0);
+		position : IN std_logic_vector(11 downto 0);
 		ascii_to_write : IN std_logic_vector(7 downto 0);
 		write_en : IN std_logic;  
-		left : in  STD_LOGIC;
-		right : in  STD_LOGIC;	
 		r : OUT std_logic_vector(7 downto 0);
 		g : OUT std_logic_vector(7 downto 0);
 		b : OUT std_logic_vector(7 downto 0)
@@ -122,6 +121,7 @@ COMPONENT nes_controller
 	signal row_sig, col_sig , col_reg, col_next_1, col_next_2, row_reg, row_next_1, row_next_2 : unsigned (10 downto 0);
 	signal up, down, left, right, up_sig, down_sig, left_sig, right_sig, en_sig, v_com_sig, pixel_clk, serialize_clk, serialize_clk_n, h_sync, h_sync_reg, h_sync_next_1, h_sync_next_2,  v_sync, v_sync_reg, v_sync_next_1, v_sync_next_2, blank, blank_reg, blank_next_1, blank_next_2, clock_s, red_s, green_s, blue_s : std_logic;
 	signal red, blue, green, ascii_signal : std_logic_vector (7 downto 0);
+	signal position_reg, position_next :std_logic_vector (11 downto 0);
 	signal count, count_next : std_logic_vector(7 downto 0);
 begin
 
@@ -142,32 +142,64 @@ Inst_nes_controller: nes_controller PORT MAP(
 		right => right
 	);
 
-	up_nes_speed_control: nes_speed_control PORT MAP(
+--	up_nes_speed_control: nes_speed_control PORT MAP(
+--		clk => pixel_clk,
+--		reset => reset,
+--		btn_in => up,
+--		btn_out => up_sig
+--	);
+--	
+--		down_nes_speed_control: nes_speed_control PORT MAP(
+--		clk => pixel_clk,
+--		reset => reset,
+--		btn_in => down,
+--		btn_out => down_sig
+--	);
+--	
+--		left_nes_speed_control: nes_speed_control PORT MAP(
+--		clk => pixel_clk,
+--		reset => reset,
+--		btn_in => left,
+--		btn_out => left_sig
+--	);
+--	
+--		right_nes_speed_control: nes_speed_control PORT MAP(
+--		clk => pixel_clk,
+--		reset => reset,
+--		btn_in => right,
+--		btn_out => right_sig 
+--	);
+
+	left_input_to_pulse: input_to_pulse PORT MAP(
 		clk => pixel_clk,
 		reset => reset,
-		btn_in => up,
-		btn_out => up_sig
+		input => left,
+		pulse => left_sig,
+		held => open
 	);
 	
-		down_nes_speed_control: nes_speed_control PORT MAP(
+		right_input_to_pulse: input_to_pulse PORT MAP(
 		clk => pixel_clk,
 		reset => reset,
-		btn_in => down,
-		btn_out => down_sig
+		input => right,
+		pulse => right_sig,
+		held => open
 	);
 	
-		left_nes_speed_control: nes_speed_control PORT MAP(
+	up_input_to_pulse: input_to_pulse PORT MAP(
 		clk => pixel_clk,
 		reset => reset,
-		btn_in => left,
-		btn_out => left_sig
+		input => up,
+		pulse => up_sig,
+		held => open
 	);
 	
-		right_nes_speed_control: nes_speed_control PORT MAP(
+		down_input_to_pulse: input_to_pulse PORT MAP(
 		clk => pixel_clk,
 		reset => reset,
-		btn_in => right,
-		btn_out => right_sig 
+		input => down,
+		pulse => down_sig,
+		held => open
 	);
 
 
@@ -200,9 +232,8 @@ Inst_character_gen: character_gen PORT MAP(
 		row => std_logic_vector(row_sig),
 		column => std_logic_vector(col_sig),
 		ascii_to_write => ascii_signal,
-		write_en => (left_sig or right_sig or up_sig or down_sig),
-		left => left,
-		right => right,
+		position => position_reg,
+		write_en => (left or right) or (up or down),
 		r => red,
 		g => green,
 		b => blue 
@@ -211,22 +242,34 @@ Inst_character_gen: character_gen PORT MAP(
 
 
 
-	process(pixel_clk) is
+	process(up_sig, down_sig, right_sig, left_sig, ascii_signal, position_reg) is
 	begin
-		if(rising_edge(pixel_clk)) then
-			if (up = '1') then
+			if (rising_edge(up_sig)) then
 					ascii_signal <= std_logic_vector(unsigned(ascii_signal) + 1);
-			elsif (down = '1') 
-					then ascii_signal <= std_logic_vector(unsigned(ascii_signal) - 1);
-			elsif (left = '1') then
-					ascii_signal <= (others => '0');
-			elsif  (right = '1') then
-					ascii_signal <= (others => '0');
+--					position_reg<= position_reg;
+			elsif (rising_edge(down_sig)) then 
+					ascii_signal <= std_logic_vector(unsigned(ascii_signal) - 1);
+--					position_reg <= position_reg;
+			elsif (rising_edge(left_sig)) then
+					ascii_signal <= ("00000001");
+--					position_reg <= std_logic_vector(unsigned(position_reg) - 1);
+			elsif  (rising_edge(right_sig)) then
+					ascii_signal <= ("00000001");
+--					position_reg <= std_logic_vector(unsigned(position_reg) + 1);
 			else
 					ascii_signal <= ascii_signal;
+--					position_reg <= position_reg;
 			end if;
-		end if;
 	end process;
+
+position_reg <= std_logic_vector(unsigned(position_next) + 1) when rising_edge(right_sig) else
+			std_logic_vector(unsigned(position_next) - 1) when rising_edge(left_sig) else
+			position_next;
+
+position_next <= (others => '0') when reset = '1' else
+					position_reg;
+
+
 
 process(pixel_clk) is 
 begin

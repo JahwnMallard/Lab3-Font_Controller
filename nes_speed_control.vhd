@@ -67,7 +67,7 @@ process(clk, reset)
 	end process;
 	
 	
-count_next <= count_reg + 1 when (button_next = pressed and count_reg<2000000) else
+count_next <= count_reg + 1 when (count_reg<1500000) else
 to_unsigned(0, 20);
 
 
@@ -83,7 +83,7 @@ to_unsigned(0, 20);
 				end if;
 				
 			when pressed =>
-				if(count_reg=2000000) then	
+				if(count_reg=1500000) then	
 					button_next <=cycle;
 					
 				end if;

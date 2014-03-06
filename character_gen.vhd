@@ -33,12 +33,11 @@ entity character_gen is
     Port ( reset : in std_logic;
 			  clk : in  STD_LOGIC;
            blank : in  STD_LOGIC;
+			  position : in std_logic_vector(11 downto 0);
            row : in  STD_LOGIC_VECTOR (10 downto 0);
            column : in  STD_LOGIC_VECTOR (10 downto 0);
            ascii_to_write : in  STD_LOGIC_VECTOR (7 downto 0);
            write_en : in  STD_LOGIC;
-			  left : in  STD_LOGIC;
-			  right : in  STD_LOGIC;
            r,g,b : out  STD_LOGIC_VECTOR (7 downto 0));
 end character_gen;
 
@@ -84,21 +83,15 @@ signal col_reg, col_next_1, col_next_2 : std_logic_vector(2 downto 0);
 signal mux_out : std_logic;
 signal addr_sig :  std_logic_vector(10 downto 0);
 signal row_col_multiply : std_logic_vector(13 downto 0);
-signal row_col_multiply_12, count, count_temp : std_logic_vector(11 downto 0);
+signal row_col_multiply_12: std_logic_vector(11 downto 0);
 
 begin
 	
-count <= std_logic_vector(unsigned(count_temp) -1 ) when (left= '1' and unsigned(count_temp) > 0) else 
-			std_logic_vector(unsigned(count_temp) + 1 ) when (right = '1' and unsigned(count_temp) < 2399) else
-			count_temp;
-
-count_temp <= (others => '0') when reset = '1' else
-					count;	
 
 Inst_char_screen_buffer: char_screen_buffer PORT MAP(
 		clk => clk,
 		we => write_en,
-		address_a => count,
+		address_a => position,
 		address_b => row_col_multiply_12,
 		data_in => ascii_to_write,
 		data_out_a => open,
